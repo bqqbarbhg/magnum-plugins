@@ -617,7 +617,6 @@ Containers::Optional<SceneData> UfbxImporter::doScene(UnsignedInt) {
                 for(UnsignedInt i = 0; i < chunkMapping.count; ++i) {
                     UnsignedInt chunkIndex = chunkMapping.baseIndex + i;
                     const MeshChunk& chunk = _state->meshChunks[chunkIndex];
-                    const ufbx_mesh_part& part = mesh->material_parts[chunk.materialPartIndex];
 
                     /* Fetch the material from the ufbx_node to get per instance
                        materials unless configured otherwise */
