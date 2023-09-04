@@ -855,7 +855,7 @@ Containers::Optional<MeshData> UfbxImporter::doMesh(UnsignedInt id, UnsignedInt 
 
     const MeshChunk chunk = _state->meshChunks[id];
     const ufbx_mesh* mesh = _state->scene->meshes[chunk.meshId];
-    const ufbx_material_part& part = mesh->material_parts[chunk.materialPartIndex];
+    const ufbx_mesh_part& part = mesh->material_parts[chunk.materialPartIndex];
 
     UnsignedInt indexCount = 0;
     switch(chunk.primitive) {
