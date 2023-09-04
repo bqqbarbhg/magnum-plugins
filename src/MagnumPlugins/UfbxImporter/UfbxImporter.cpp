@@ -74,6 +74,7 @@
 /* Embed ufbx into the translation unit as static, allows for more optimizations
    and users to have an alternate version of ufbx loaded simultaneously */
 #define ufbx_abi static
+#define UFBX_USE_EXPLICIT_ENUM 1
 #include "ufbx.h"
 #include "ufbx.c"
 
@@ -312,7 +313,7 @@ struct MeshChunkMapping {
 }
 
 struct UfbxImporter::State {
-    ufbx_scene_ref scene;
+    ufbx_unique_ptr<ufbx_scene> scene;
 
     /* Meshes split by material */
     Containers::Array<MeshChunk> meshChunks;
@@ -414,7 +415,7 @@ void UfbxImporter::openInternal(void* opaqueScene, const void* opaqueOpts, bool 
         _state->preserveRootNode = true;
 
     _state->fromFile = fromFile;
-    _state->scene = ufbx_scene_ref{scene};
+    _state->scene.reset(scene);
 
     _state->animationLayers = configuration().value<bool>("animationLayers");
 
@@ -1685,11 +1686,11 @@ Containers::Optional<AnimationData> UfbxImporter::doAnimation(UnsignedInt id) {
     if(_state->animationLayers) {
         ufbx_anim_layer* layer = _state->scene->anim_layers[id];
         layers = {&_state->scene->anim_layers[id], 1};
-        anim = &layer->anim;
+        anim = layer->anim;
     } else {
         ufbx_anim_stack* stack = _state->scene->anim_stacks[id];
         layers = {stack->layers.data, stack->layers.count};
-        anim = &stack->anim;
+        anim = stack->anim;
     }
 
     Containers::Array<AnimProp> animProps;
