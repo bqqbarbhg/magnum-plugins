@@ -612,7 +612,6 @@ Containers::Optional<SceneData> UfbxImporter::doScene(UnsignedInt) {
 
         for(const ufbx_element* element: node->all_attribs) {
             if(const ufbx_mesh* mesh = ufbx_as_mesh(element)) {
-                UnsignedInt materialIndex = 0;
                 MeshChunkMapping chunkMapping = _state->meshChunkMapping[mesh->typed_id];
                 for(UnsignedInt i = 0; i < chunkMapping.count; ++i) {
                     UnsignedInt chunkIndex = chunkMapping.baseIndex + i;
@@ -621,17 +620,16 @@ Containers::Optional<SceneData> UfbxImporter::doScene(UnsignedInt) {
                     /* Fetch the material from the ufbx_node to get per instance
                        materials unless configured otherwise */
                     const ufbx_material* material = nullptr;
-                    if(materialIndex < node->materials.count)
-                        material = node->materials[materialIndex];
-                    else if(materialIndex < mesh->materials.count)
-                        material = mesh->materials[materialIndex];
+                    if(chunk.materialPartIndex < node->materials.count)
+                        material = node->materials[chunk.materialPartIndex];
+                    else if(chunk.materialPartIndex < mesh->materials.count)
+                        material = mesh->materials[chunk.materialPartIndex];
 
                     meshMaterialObjects[meshMaterialOffset] = nodeId;
                     meshes[meshMaterialOffset] = chunkIndex;
                     meshMaterials[meshMaterialOffset] = material ? Int(material->typed_id) : -1;
 
                     ++meshMaterialOffset;
-                    ++materialIndex;
                 }
             } else if(const ufbx_light* light = ufbx_as_light(element)) {
                 lightObjects[lightOffset] = nodeId;
