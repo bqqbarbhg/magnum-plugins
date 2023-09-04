@@ -238,10 +238,6 @@ bool getLoadOptsFromConfiguration(ufbx_load_opts& opts, Utility::ConfigurationGr
         opts.target_unit_meters = 1.0f;
     }
 
-    /* We need to split meshes by material so create a dummy ufbx_mesh_material
-       containing the whole mesh to make processing code simpler. */
-    opts.allow_null_material = true;
-
     return true;
 }
 
@@ -295,8 +291,8 @@ struct FileOpener {
 struct MeshChunk {
     /* ufbx_scene::meshes[] */
     UnsignedInt meshId;
-    /* ufbx_mesh::materials[] (NOT ufbx_scene::materials[] !) */
-    UnsignedInt meshMaterialIndex;
+    /* ufbx_mesh::material_parts[]  */
+    UnsignedInt materialPartIndex;
     /* Faces are filtered based on the primitive type */
     MeshPrimitive primitive;
 };
@@ -430,14 +426,14 @@ void UfbxImporter::openInternal(void* opaqueScene, const void* opaqueOpts, bool 
 
         MeshChunkMapping& mapping = _state->meshChunkMapping[i];
         mapping.baseIndex = UnsignedInt(_state->meshChunks.size());
-        for(UnsignedInt j = 0; j < mesh->materials.count; ++j) {
-            const ufbx_mesh_material& mat = mesh->materials[j];
+        for(UnsignedInt j = 0; j < mesh->material_parts.count; ++j) {
+            const ufbx_mesh_part& part = mesh->material_parts[j];
 
-            if(mat.num_point_faces > 0)
+            if(part.num_point_faces > 0)
                 arrayAppend(_state->meshChunks, {mesh->typed_id, j, MeshPrimitive::Points});
-            if(mat.num_line_faces > 0)
+            if(part.num_line_faces > 0)
                 arrayAppend(_state->meshChunks, {mesh->typed_id, j, MeshPrimitive::Lines});
-            if(mat.num_triangles > 0)
+            if(part.num_triangles > 0)
                 arrayAppend(_state->meshChunks, {mesh->typed_id, j, MeshPrimitive::Triangles});
         }
 
@@ -620,15 +616,15 @@ Containers::Optional<SceneData> UfbxImporter::doScene(UnsignedInt) {
                 for(UnsignedInt i = 0; i < chunkMapping.count; ++i) {
                     UnsignedInt chunkIndex = chunkMapping.baseIndex + i;
                     const MeshChunk& chunk = _state->meshChunks[chunkIndex];
-                    const ufbx_mesh_material& mat = mesh->materials[chunk.meshMaterialIndex];
+                    const ufbx_mesh_part& part = mesh->material_parts[chunk.materialPartIndex];
 
                     /* Fetch the material from the ufbx_node to get per instance
                        materials unless configured otherwise */
                     const ufbx_material* material = nullptr;
                     if(materialIndex < node->materials.count)
                         material = node->materials[materialIndex];
-                    else
-                        material = mat.material;
+                    else if(materialIndex < mesh->materials.count)
+                        material = mesh->materials[materialIndex];
 
                     meshMaterialObjects[meshMaterialOffset] = nodeId;
                     meshes[meshMaterialOffset] = chunkIndex;
@@ -858,18 +854,18 @@ Containers::Optional<MeshData> UfbxImporter::doMesh(UnsignedInt id, UnsignedInt 
 
     const MeshChunk chunk = _state->meshChunks[id];
     const ufbx_mesh* mesh = _state->scene->meshes[chunk.meshId];
-    const ufbx_mesh_material mat = mesh->materials[chunk.meshMaterialIndex];
+    const ufbx_material_part& part = mesh->material_parts[chunk.materialPartIndex];
 
     UnsignedInt indexCount = 0;
     switch(chunk.primitive) {
         case MeshPrimitive::Points:
-            indexCount = mat.num_point_faces*1;
+            indexCount = part.num_point_faces*1;
             break;
         case MeshPrimitive::Lines:
-            indexCount = mat.num_line_faces*2;
+            indexCount = part.num_line_faces*2;
             break;
         case MeshPrimitive::Triangles:
-            indexCount = mat.num_triangles*3;
+            indexCount = part.num_triangles*3;
             break;
         default: CORRADE_INTERNAL_ASSERT_UNREACHABLE(); /* LCOV_EXCL_LINE */
     }
@@ -1032,7 +1028,7 @@ Containers::Optional<MeshData> UfbxImporter::doMesh(UnsignedInt id, UnsignedInt 
     CORRADE_INTERNAL_ASSERT(attributeOffset == stride);
 
     UnsignedInt dstIx = 0;
-    for(UnsignedInt faceIndex: mat.face_indices) {
+    for(UnsignedInt faceIndex: part.face_indices) {
         const ufbx_face face = mesh->faces[faceIndex];
 
         UnsignedInt numIndices = 0;
