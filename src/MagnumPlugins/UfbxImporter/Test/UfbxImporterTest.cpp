@@ -532,7 +532,7 @@ void UfbxImporterTest::fileCallbackEmpty() {
     std::ostringstream out;
     Error redirectError{&out};
     CORRADE_VERIFY(!importer->openFile("some-file.fbx"));
-    CORRADE_COMPARE(out.str(), "Trade::UfbxImporter::openFile(): loading failed: Failed to load\n");
+    CORRADE_COMPARE(out.str(), "Trade::UfbxImporter::openFile(): loading failed: Empty file\n");
 }
 
 void UfbxImporterTest::fileCallbackEmptyVerbose() {
