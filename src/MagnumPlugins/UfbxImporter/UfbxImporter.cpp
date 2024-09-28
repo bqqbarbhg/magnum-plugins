@@ -270,7 +270,7 @@ struct FileOpener {
         CORRADE_INTERNAL_ASSERT(info->type != UFBX_OPEN_FILE_GEOMETRY_CACHE);
 
         /* If we don't have a callback just defer to ufbx file loading */
-        if(!_callback) return ufbx_open_file_ctx(stream, info->context, path, path_len);
+        if(!_callback) return ufbx_open_file_ctx(stream, info->context, path, path_len, nullptr, nullptr);
 
         std::string file{path, path_len};
         const Containers::Optional<Containers::ArrayView<const char>> data = _callback(file, InputFileCallbackPolicy::LoadTemporary, _userData);
