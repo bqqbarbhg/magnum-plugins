@@ -270,20 +270,19 @@ struct FileOpener {
         CORRADE_INTERNAL_ASSERT(info->type != UFBX_OPEN_FILE_GEOMETRY_CACHE);
 
         /* If we don't have a callback just defer to ufbx file loading */
-        if(!_callback) return ufbx_open_file(stream, path, path_len);
+        if(!_callback) return ufbx_open_file_ctx(stream, info->context, path, path_len);
 
         std::string file{path, path_len};
         const Containers::Optional<Containers::ArrayView<const char>> data = _callback(file, InputFileCallbackPolicy::LoadTemporary, _userData);
         if(!data) return false;
 
         ufbx_open_memory_opts opts{};
-        opts.allocator.allocator = info->temp_allocator;
 
         /* We don't need to copy the file data as it's guaranteed to live for
            the duration of the load function we are currently executing */
         opts.no_copy = true;
 
-        return ufbx_open_memory(stream, data->data(), data->size(), &opts, nullptr);
+        return ufbx_open_memory_ctx(stream, info->context, data->data(), data->size(), &opts, nullptr);
     }
 
     Containers::Optional<Containers::ArrayView<const char>> (*_callback)(const std::string&, InputFileCallbackPolicy, void*);
