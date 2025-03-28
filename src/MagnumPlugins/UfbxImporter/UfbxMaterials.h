@@ -183,6 +183,7 @@ constexpr MaterialMapping materialMappingPbr[]{
     {UfbxMaterialLayer::Coat, MaterialAttributeType::Float, "affectBaseColor"_s, {}, UFBX_MATERIAL_PBR_COAT_AFFECT_BASE_COLOR},
     {UfbxMaterialLayer::Coat, MaterialAttributeType::Float, "affectBaseRoughness"_s, {}, UFBX_MATERIAL_PBR_COAT_AFFECT_BASE_ROUGHNESS},
 
+    {UfbxMaterialLayer::Base, MaterialAttributeType::Float, "thinFilmFactor"_s, {}, UFBX_MATERIAL_PBR_THIN_FILM_FACTOR},
     {UfbxMaterialLayer::Base, MaterialAttributeType::Float, "thinFilmThickness"_s, {}, UFBX_MATERIAL_PBR_THIN_FILM_THICKNESS},
     {UfbxMaterialLayer::Base, MaterialAttributeType::Float, "thinFilmIor"_s, {}, UFBX_MATERIAL_PBR_THIN_FILM_IOR},
 
